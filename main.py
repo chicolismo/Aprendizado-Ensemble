@@ -3,9 +3,9 @@ import sys
 import csv
 
 
-def read_data(name, filename):
+def read_csv(filename):
     """
-    Converte um arquivo CVS numa lista de tuplas com o nome 'name' fornecido
+    Converte um arquivo CVS numa lista de tuplas cujos campos t
     """
     data = []
     with open(filename) as csvfile:
