@@ -8,10 +8,12 @@ class Node:
         self.label = label
         self.terminal = True
         self.children = []
+        self.parentValue = None
 
-    def add_child(self, node):
+    def add_child(self, node, parentValue):
         self.terminal = False
         self.children.append(node)
+        node.parentValue = parentValue
 
 
 def all_same_class(D):
@@ -82,7 +84,6 @@ def info(D, attr=None):
     return entropy
 
 
-
 def generate_decision_tree(D, L):
     """
     Entrada:
@@ -110,14 +111,20 @@ def generate_decision_tree(D, L):
 
     # Calcula a entropia para cada atributo restante em L.
     # O de menor entropia é escolhido.
+    originalEntropy = info(D)
+
     entropies = {}
+    gains = {}
     for attr in L:
         entropies[attr] = info(D, attr)
+        gains[attr] = originalEntropy - entropies[attr]
 
     # A = Atributo preditivo em L que apresenta "melhor" critério de divisão.
-    A = min(entropies, key=entropies.get)
+    # A = min(entropies, key=entropies.get)
+    A = max(gains, key = gains.get)
 
-    print(entropies)
+    print("Entropia:" + str(entropies))
+    print("Ganhos:" + str(gains))
 
     # Associe A ao nó N
     N.label = A
@@ -127,14 +134,23 @@ def generate_decision_tree(D, L):
     L = tuple(attr for attr in L if attr != A)
 
 
-    # TODO: Continuar aqui...
+    # Computa os valores possíveis de A
+    values = set()
+    for element in D:
+        values.add(getattr(element, A))
+    # Para cada valor em A
+    for value in values:
+        # Cria um subconjunto D contendo apenas as instâncias com A=valor
+        subset = [element for element in D if value in element]
+        # Se o subconjunto for vazio, associa a classe mais frequente e retorna
+        if subset == None or len(subset) == 0:
+            N.label = most_frequent_class(D)
+            return N
+        # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
+        N.add_child(generate_decision_tree(subset,L),value)
 
-    # Para cada valor v distinto do atributo A, considrendo os exemplos em D, faça:
-        # D_v = subconjunto dos dados de treinamento em que A = v
-        # Se D_v vazio, então retorne N como um nó folha rotulado com a class y_i mais frequente em D_v
-        # Senão, associe N a uma subárvore retornada por "generate_decision_tree(D_v, L)"
-
-    # Retorne N
+    # Retorna N
+    return N
 
 
 
