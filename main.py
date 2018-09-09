@@ -1,7 +1,6 @@
 from collections import namedtuple
 import sys
 import csv
-
 import tree
 
 def read_data(filename):
@@ -33,5 +32,11 @@ if __name__ == '__main__':
         print(row)
 
     tree = tree.generate_decision_tree(rows, fieldnames[:-1])
+    attr = fieldnames[:-1]
+    Data = namedtuple('Data', fieldnames[:-1])
+    result = tree.predict(Data(tempo='Nublado', temperatura='Alta', umidade='Alta', ventoso='FALSO'))
+    print("Novo valor:")
+    print(result)
+
 
 

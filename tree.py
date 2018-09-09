@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import math
+import numbers
 
 class Node:
     def __init__(self, label=None):
@@ -15,6 +16,15 @@ class Node:
         self.children.append(node)
         node.parentValue = parentValue
 
+    def predict(self, instance):
+        print(self.label)
+        if self.terminal:
+            return self.label
+        current = instance.index(getattr(instance, self.label))
+        for child in self.children:
+            if child.parentValue == instance[current]:
+                print(child.parentValue)
+                return child.predict(instance)
 
 def all_same_class(D):
     length = len(D)
@@ -41,6 +51,17 @@ def most_frequent_class(D):
         counter[element[-1]] += 1
     return max(counter, key=counter.get)
 
+def isCategorical(D, attr):
+    # TODO: modificar a função para pegar um valor já classificado à mão
+    index = D[0].index(getattr(D[0], attr))
+    numeric = isinstance(D[0][index], numbers.Number)
+    return not numeric
+
+def divideNumericalAttr(D, attr):
+    # TODO: ordenar pelo attributo numérico e separar os valores de decisão (média de dois seguidos que foram classificados diferentemente)
+    sorted = sorted(D, attr)
+
+
 
 def info(D, attr=None):
     """
@@ -51,6 +72,10 @@ def info(D, attr=None):
     entropy = 0
 
     if attr is not None:
+        # TODO: tratamento de valores numéricos
+        # if(not isCategorical(D, attr)):
+        #     divideNumericalAttr(D, attr)
+
         # Cria um conjunto com todos os valores possíveis para o attributo
         # escolhido
         values = set()
