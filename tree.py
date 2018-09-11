@@ -63,6 +63,8 @@ def divideNumericalAttr(D, attr):
 
 
 
+# TODO: Verificar se que vai haver algum caso que não se passa nenhuma lista de atributos???
+
 def info(D, attr=None):
     """
     Calcula a entropia de D_v.
@@ -71,6 +73,7 @@ def info(D, attr=None):
     n = len(D)
     entropy = 0
 
+
     if attr is not None:
         # TODO: tratamento de valores numéricos
         # if(not isCategorical(D, attr)):
@@ -78,25 +81,25 @@ def info(D, attr=None):
 
         # Cria um conjunto com todos os valores possíveis para o attributo
         # escolhido
-        values = set()
-        for element in D:
-            values.add(getattr(element, attr))
+        values = { getattr(row, attr) for row in D }
 
         # Para cada valor do atributo, determina a proporção das classes
         for value in values:
-            value_count = 0
+            value_occurrences = 0
             classes_count = defaultdict(int)
-            for element in D:
-                if getattr(element, attr) == value:
-                    value_count += 1
-                    classes_count[element[-1]] += 1
-            value_sum = 0.0
-            for class_count in classes_count.values():
-                p = (class_count / value_count)
-                value_sum -= p * math.log(p, 2)
+            for row in D:
+                if getattr(row, attr) == value:
+                    value_occurrences += 1
+                    classes_count[row[-1]] += 1
+
+            probalibility_sum = 0.0
+            for class_occurrences in classes_count.values():
+                p = (class_occurrences / value_occurrences)
+                probalibility_sum -= p * math.log(p, 2)
 
             # Soma ponderada das probalidades de cada atributo
-            entropy += (value_count / n) * value_sum
+            value_weight = (value_occurrences / n)
+            entropy += value_weight * probalibility_sum
 
     else:
         counter = defaultdict(int) # Quantidade de cada classe em D
@@ -160,19 +163,19 @@ def generate_decision_tree(D, L):
 
 
     # Computa os valores possíveis de A
-    values = set()
-    for element in D:
-        values.add(getattr(element, A))
+    values = { getattr(row, A) for row in D }
+
     # Para cada valor em A
     for value in values:
         # Cria um subconjunto D contendo apenas as instâncias com A=valor
-        subset = [element for element in D if value in element]
+        subset = [row for row in D if value in row]
+
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
-        if subset == None or len(subset) == 0:
+        if not len(subset):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset,L),value)
+        N.add_child(generate_decision_tree(subset, L), value)
 
     # Retorna N
     return N
