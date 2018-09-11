@@ -73,7 +73,6 @@ def info(D, attr=None):
     n = len(D)
     entropy = 0
 
-
     if attr is not None:
         # TODO: tratamento de valores numéricos
         # if(not isCategorical(D, attr)):
@@ -102,11 +101,12 @@ def info(D, attr=None):
             entropy += value_weight * probalibility_sum
 
     else:
-        counter = defaultdict(int) # Quantidade de cada classe em D
+        class_counter = defaultdict(int) # Quantidade de cada classe em D
         for element in D:
-            counter[element[-1]] += 1
-        for n_class in counter.values():
-            p = n_class / n  # Probabilidade de um elemento pertencer a classe p_i
+            class_counter[element[-1]] += 1
+
+        for class_occurrences in class_counter.values():
+            p = class_occurrences / n  # Probabilidade de um elemento pertencer a classe p_i
             entropy -= p * math.log(p, 2)
 
     return entropy
@@ -149,7 +149,7 @@ def generate_decision_tree(D, L):
 
     # A = Atributo preditivo em L que apresenta "melhor" critério de divisão.
     # A = min(entropies, key=entropies.get)
-    A = max(gains, key = gains.get)
+    A = max(gains, key=gains.get)
 
     print("Entropia:" + str(entropies))
     print("Ganhos:" + str(gains))
