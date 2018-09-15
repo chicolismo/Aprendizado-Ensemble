@@ -2,6 +2,7 @@ from collections import namedtuple
 import sys
 import csv
 import tree
+import testAndTraining
 
 def read_data(filename):
     """
@@ -45,6 +46,8 @@ if __name__ == '__main__':
     result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='FALSO'))
     print("Novo valor:")
     print(result)
+
+    testAndTraining.bootstrap(rows)
 
 
 
