@@ -32,13 +32,13 @@ if __name__ == '__main__':
         print(row)
 
     if len(sys.argv) > 2: # Array com indices das features contínuas passado como parâmetro
-        continuousIndexes = []
+        numericIndexes = []
         for i in range(2,len(sys.argv)):
-            continuousIndexes.append(int(sys.argv[i]))
+            numericIndexes.append(int(sys.argv[i]))
     else:
-        continuousIndexes = None
+        numericIndexes = None
 
-    tree = tree.generate_decision_tree(rows, fieldnames[:-1], continuousIndexes)
+    tree = tree.generate_decision_tree(rows, fieldnames[:-1], numericIndexes)
     attr = fieldnames[:-1]
     Data = namedtuple('Data', fieldnames[:-1])
     # result = tree.predict(Data(tempo='Nublado', temperatura='Alta', umidade='Alta', ventoso='FALSO'))

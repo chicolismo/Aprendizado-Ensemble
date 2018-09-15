@@ -10,15 +10,15 @@ class Node:
     def __init__(self, label=None):
         self.label = label
         self.terminal = True
-        self.continuous = None
+        self.numeric = None
         self.children = []
         self.parentValue = None
 
-    def add_child(self, node, parentValue, continuous):
+    def add_child(self, node, parentValue, numeric):
         self.terminal = False
         self.children.append(node)
         node.parentValue = parentValue
-        self.continuous = continuous
+        self.numeric = numeric
 
     def predict(self, instance):
         print(self.label)
@@ -26,7 +26,7 @@ class Node:
             return self.label
         current = instance.index(getattr(instance, self.label))
         for child in self.children:
-            if self.continuous == True:
+            if self.numeric == True:
                 if eval(str(instance[current]) + child.parentValue):
                     print(child.parentValue)
                     return child.predict(instance)
@@ -60,9 +60,9 @@ def most_frequent_class(D):
         counter[element[-1]] += 1
     return max(counter, key=counter.get)
 
-def isContinuous(D, attr, continuousIndexes):
+def isNumeric(D, attr, numericIndexes):
     attrIndex = D[0].index(getattr(D[0], attr))
-    if continuousIndexes != None and (attrIndex in continuousIndexes):  # Se for contínuo
+    if numericIndexes != None and (attrIndex in numericIndexes):  # Se for contínuo
         return True
     else:
         return False
@@ -81,10 +81,10 @@ def divideNumericalAttr(D, attr):
     return values
 
 
-def getCutPoint(D, attr, continuousIndexes, values):
+def getCutPoint(D, attr, numericIndexes, values):
     entropy = {}
     for value in values:
-        entropy[value] = info(D, attr, continuousIndexes, value)
+        entropy[value] = info(D, attr, numericIndexes, value)
     return min(entropy, key=entropy.get)
 
 
@@ -93,7 +93,7 @@ def getCutPoint(D, attr, continuousIndexes, values):
 
 # TODO: Verificar se que vai haver algum caso que não se passa nenhuma lista de atributos???
 
-def info(D, attr=None, continuousIndexes = None, cutpoint=None):
+def info(D, attr=None, numericIndexes = None, cutpoint=None):
     """
     Calcula a entropia de D_v.
     Menor = melhor.
@@ -104,7 +104,7 @@ def info(D, attr=None, continuousIndexes = None, cutpoint=None):
     if attr is not None:
         # Cria um conjunto com todos os valores possíveis para o attributo
         # escolhido
-        if isContinuous(D,attr, continuousIndexes) and cutpoint != None:
+        if isNumeric(D, attr, numericIndexes) and cutpoint != None:
 
             # Valores menores ou iguais ao ponto de corte
             value_occurrences = 0
@@ -172,12 +172,12 @@ def info(D, attr=None, continuousIndexes = None, cutpoint=None):
     return entropy
 
 
-def generate_decision_tree(D, L, continuousIndexes=None):
+def generate_decision_tree(D, L, numericIndexes=None):
     """
     Entrada:
         D: Conjunto de dados de treinamento.
         L: Lista de d atributos (rótulos) preditivos em D.
-        continuousIndexes: Lista de índices das features de valor contínuo
+        numericIndexes: Lista de índices das features de valor contínuo
     Retorna: Árvore de decisão
     """
 
@@ -205,13 +205,13 @@ def generate_decision_tree(D, L, continuousIndexes=None):
     entropies = {}
     gains = {}
     for attr in L:
-        if isContinuous(D, attr, continuousIndexes):
+        if isNumeric(D, attr, numericIndexes):
             values = divideNumericalAttr(D, attr)
-            cutpoint = getCutPoint(D, attr, continuousIndexes, values)
-            entropies[attr] = info(D, attr, continuousIndexes, cutpoint)
+            cutpoint = getCutPoint(D, attr, numericIndexes, values)
+            entropies[attr] = info(D, attr, numericIndexes, cutpoint)
             gains[attr] = originalEntropy - entropies[attr]
         else:
-            entropies[attr] = info(D, attr, continuousIndexes)
+            entropies[attr] = info(D, attr, numericIndexes)
             gains[attr] = originalEntropy - entropies[attr]
 
     # A = Atributo preditivo em L que apresenta "melhor" critério de divisão.
@@ -228,7 +228,7 @@ def generate_decision_tree(D, L, continuousIndexes=None):
     # L = L - A
     L = tuple(attr for attr in L if attr != A)
 
-    if isContinuous(D, A, continuousIndexes):
+    if isNumeric(D, A, numericIndexes):
         attrIndex = D[0].index(getattr(D[0], A))
         subset = [row for row in D if float(row[attrIndex]) <= cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
@@ -236,7 +236,7 @@ def generate_decision_tree(D, L, continuousIndexes=None):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset, L, continuousIndexes), "<=" + str(cutpoint), True)
+        N.add_child(generate_decision_tree(subset, L, numericIndexes), "<=" + str(cutpoint), True)
 
         subset = [row for row in D if float(row[attrIndex]) > cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
@@ -244,7 +244,7 @@ def generate_decision_tree(D, L, continuousIndexes=None):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset, L, continuousIndexes),  ">" + str(cutpoint), True)
+        N.add_child(generate_decision_tree(subset, L, numericIndexes), ">" + str(cutpoint), True)
 
     else:
         values = { getattr(row, A) for row in D }
@@ -259,7 +259,7 @@ def generate_decision_tree(D, L, continuousIndexes=None):
                 N.label = most_frequent_class(D)
                 return N
             # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-            N.add_child(generate_decision_tree(subset, L, continuousIndexes), value, False)
+            N.add_child(generate_decision_tree(subset, L, numericIndexes), value, False)
 
     # Retorna N
     return N
