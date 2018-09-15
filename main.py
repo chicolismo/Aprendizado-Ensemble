@@ -42,7 +42,7 @@ if __name__ == '__main__':
     attr = fieldnames[:-1]
     Data = namedtuple('Data', fieldnames[:-1])
     # result = tree.predict(Data(tempo='Nublado', temperatura='Alta', umidade='Alta', ventoso='FALSO'))
-    result = tree.predict(Data(tempo='Ensolarado', temperatura=30, umidade='Alta', ventoso='FALSO'))
+    result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='FALSO'))
     print("Novo valor:")
     print(result)
 

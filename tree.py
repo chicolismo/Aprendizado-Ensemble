@@ -10,13 +10,15 @@ class Node:
     def __init__(self, label=None):
         self.label = label
         self.terminal = True
+        self.continuous = None
         self.children = []
         self.parentValue = None
 
-    def add_child(self, node, parentValue):
+    def add_child(self, node, parentValue, continuous):
         self.terminal = False
         self.children.append(node)
         node.parentValue = parentValue
+        self.continuous = continuous
 
     def predict(self, instance):
         print(self.label)
@@ -24,9 +26,14 @@ class Node:
             return self.label
         current = instance.index(getattr(instance, self.label))
         for child in self.children:
-            if child.parentValue == instance[current]:
-                print(child.parentValue)
-                return child.predict(instance)
+            if self.continuous == True:
+                if eval(str(instance[current]) + child.parentValue):
+                    print(child.parentValue)
+                    return child.predict(instance)
+            else:
+                if child.parentValue == instance[current]:
+                    print(child.parentValue)
+                    return child.predict(instance)
 
 def all_same_class(D):
     length = len(D)
@@ -54,7 +61,6 @@ def most_frequent_class(D):
     return max(counter, key=counter.get)
 
 def isContinuous(D, attr, continuousIndexes):
-    # TODO: modificar a função para pegar um valor já classificado à mão
     attrIndex = D[0].index(getattr(D[0], attr))
     if continuousIndexes != None and (attrIndex in continuousIndexes):  # Se for contínuo
         return True
@@ -222,50 +228,38 @@ def generate_decision_tree(D, L, continuousIndexes=None):
     # L = L - A
     L = tuple(attr for attr in L if attr != A)
 
-
-    # Computa os valores possíveis de A
-    # attrIndex = D[0].index(getattr(D[0], A))
-    # if continuousIndexes != None and (attrIndex in continuousIndexes):  # Se for contínuo
-    #     D2 = sorted(D, key=lambda x: x[attrIndex])  # Ordena pelo atributo
-    #     values = []
-    #     # Adiciona a média de dois valores seguidos com classes diferentes como ponto de corte
-    #     for i in range(len(D2) - 1):
-    #         currentClass = D2[i][-1]
-    #         nextClass = D2[i + 1][-1]
-    #         if currentClass != nextClass:
-    #             values.append((float(D2[i][attrIndex]) + float(D2[i + 1][attrIndex])) / 2)
-    #
-    #     for value in values:
-    #
-    #         subset = [row for row in D if float(row[attrIndex]) <= value]
-    #         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
-    #         if not len(subset):
-    #             N.label = most_frequent_class(D)
-    #             return N
-    #         # Senão, associa N a uma subárvore gerada por recursão com o subconjunto como entrada
-    #         N.add_child(generate_decision_tree(subset, L, continuousIndexes), value)
-    #     # Para o último valor, também compara se é maior
-    #     subset = [row for row in D if float(row[attrIndex]) >= values[-1]]
-    #     if not len(subset):
-    #         N.label = most_frequent_class(D)
-    #         return N
-    #     N.add_child(generate_decision_tree(subset, L, continuousIndexes), value)
-    #
-    # else: # Senão é discreto
-
-    values = { getattr(row, A) for row in D }
-
-    # Para cada valor em A
-    for value in values:
-        # Cria um subconjunto D contendo apenas as instâncias com A=valor
-        subset = [row for row in D if value in row]
-
+    if isContinuous(D, A, continuousIndexes):
+        attrIndex = D[0].index(getattr(D[0], A))
+        subset = [row for row in D if float(row[attrIndex]) <= cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
         if not len(subset):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset, L, continuousIndexes), value)
+        N.add_child(generate_decision_tree(subset, L, continuousIndexes), "<=" + str(cutpoint), True)
+
+        subset = [row for row in D if float(row[attrIndex]) > cutpoint]
+        # Se o subconjunto for vazio, associa a classe mais frequente e retorna
+        if not len(subset):
+            N.label = most_frequent_class(D)
+            return N
+        # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
+        N.add_child(generate_decision_tree(subset, L, continuousIndexes),  ">" + str(cutpoint), True)
+
+    else:
+        values = { getattr(row, A) for row in D }
+
+        # Para cada valor em A
+        for value in values:
+            # Cria um subconjunto D contendo apenas as instâncias com A=valor
+            subset = [row for row in D if value in row]
+
+            # Se o subconjunto for vazio, associa a classe mais frequente e retorna
+            if not len(subset):
+                N.label = most_frequent_class(D)
+                return N
+            # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
+            N.add_child(generate_decision_tree(subset, L, continuousIndexes), value, False)
 
     # Retorna N
     return N
