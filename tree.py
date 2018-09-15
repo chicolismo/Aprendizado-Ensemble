@@ -3,6 +3,8 @@
 from collections import defaultdict
 import math
 import numbers
+from operator import itemgetter
+from copy import deepcopy
 
 class Node:
     def __init__(self, label=None):
@@ -51,21 +53,41 @@ def most_frequent_class(D):
         counter[element[-1]] += 1
     return max(counter, key=counter.get)
 
-def isCategorical(D, attr):
+def isContinuous(D, attr, continuousIndexes):
     # TODO: modificar a função para pegar um valor já classificado à mão
-    index = D[0].index(getattr(D[0], attr))
-    numeric = isinstance(D[0][index], numbers.Number)
-    return not numeric
+    attrIndex = D[0].index(getattr(D[0], attr))
+    if continuousIndexes != None and (attrIndex in continuousIndexes):  # Se for contínuo
+        return True
+    else:
+        return False
 
 def divideNumericalAttr(D, attr):
-    # TODO: ordenar pelo attributo numérico e separar os valores de decisão (média de dois seguidos que foram classificados diferentemente)
-    sorted = sorted(D, attr)
+    attrIndex = D[0].index(getattr(D[0], attr))
+    D2 = sorted(D, key=lambda x: x[attrIndex])  # Ordena pelo atributo
+    values = []
+    # Adiciona a média de dois valores seguidos com classes diferentes como possíveis ponto de corte
+    for i in range(len(D2) - 1):
+        currentClass = D2[i][-1]
+        nextClass = D2[i + 1][-1]
+        if currentClass != nextClass:
+            values.append((float(D2[i][attrIndex]) + float(D2[i + 1][attrIndex])) / 2)
+
+    return values
+
+
+def getCutPoint(D, attr, continuousIndexes, values):
+    entropy = {}
+    for value in values:
+        entropy[value] = info(D, attr, continuousIndexes, value)
+    return min(entropy, key=entropy.get)
+
+
 
 
 
 # TODO: Verificar se que vai haver algum caso que não se passa nenhuma lista de atributos???
 
-def info(D, attr=None):
+def info(D, attr=None, continuousIndexes = None, cutpoint=None):
     """
     Calcula a entropia de D_v.
     Menor = melhor.
@@ -74,20 +96,15 @@ def info(D, attr=None):
     entropy = 0
 
     if attr is not None:
-        # TODO: tratamento de valores numéricos
-        # if(not isCategorical(D, attr)):
-        #     divideNumericalAttr(D, attr)
-
         # Cria um conjunto com todos os valores possíveis para o attributo
         # escolhido
-        values = { getattr(row, attr) for row in D }
+        if isContinuous(D,attr, continuousIndexes) and cutpoint != None:
 
-        # Para cada valor do atributo, determina a proporção das classes
-        for value in values:
+            # Valores menores ou iguais ao ponto de corte
             value_occurrences = 0
             classes_count = defaultdict(int)
             for row in D:
-                if getattr(row, attr) == value:
+                if float(getattr(row, attr)) <= cutpoint:
                     value_occurrences += 1
                     classes_count[row[-1]] += 1
 
@@ -99,6 +116,43 @@ def info(D, attr=None):
             # Soma ponderada das probalidades de cada atributo
             value_weight = (value_occurrences / n)
             entropy += value_weight * probalibility_sum
+
+            # valores maiores que o ponto de corte
+            value_occurrences = 0
+            classes_count = defaultdict(int)
+            for row in D:
+                if float(getattr(row, attr)) > cutpoint:
+                    value_occurrences += 1
+                    classes_count[row[-1]] += 1
+
+            probalibility_sum = 0.0
+            for class_occurrences in classes_count.values():
+                p = (class_occurrences / value_occurrences)
+                probalibility_sum -= p * math.log(p, 2)
+
+            # Soma ponderada das probalidades de cada atributo
+            value_weight = (value_occurrences / n)
+            entropy += value_weight * probalibility_sum
+        else:
+            values = {getattr(row, attr) for row in D}
+
+            # Para cada valor do atributo, determina a proporção das classes
+            for value in values:
+                value_occurrences = 0
+                classes_count = defaultdict(int)
+                for row in D:
+                    if getattr(row, attr) == value:
+                        value_occurrences += 1
+                        classes_count[row[-1]] += 1
+
+                probalibility_sum = 0.0
+                for class_occurrences in classes_count.values():
+                    p = (class_occurrences / value_occurrences)
+                    probalibility_sum -= p * math.log(p, 2)
+
+                # Soma ponderada das probalidades de cada atributo
+                value_weight = (value_occurrences / n)
+                entropy += value_weight * probalibility_sum
 
     else:
         class_counter = defaultdict(int) # Quantidade de cada classe em D
@@ -112,11 +166,12 @@ def info(D, attr=None):
     return entropy
 
 
-def generate_decision_tree(D, L):
+def generate_decision_tree(D, L, continuousIndexes=None):
     """
     Entrada:
         D: Conjunto de dados de treinamento.
         L: Lista de d atributos (rótulos) preditivos em D.
+        continuousIndexes: Lista de índices das features de valor contínuo
     Retorna: Árvore de decisão
     """
 
@@ -144,8 +199,14 @@ def generate_decision_tree(D, L):
     entropies = {}
     gains = {}
     for attr in L:
-        entropies[attr] = info(D, attr)
-        gains[attr] = originalEntropy - entropies[attr]
+        if isContinuous(D, attr, continuousIndexes):
+            values = divideNumericalAttr(D, attr)
+            cutpoint = getCutPoint(D, attr, continuousIndexes, values)
+            entropies[attr] = info(D, attr, continuousIndexes, cutpoint)
+            gains[attr] = originalEntropy - entropies[attr]
+        else:
+            entropies[attr] = info(D, attr, continuousIndexes)
+            gains[attr] = originalEntropy - entropies[attr]
 
     # A = Atributo preditivo em L que apresenta "melhor" critério de divisão.
     # A = min(entropies, key=entropies.get)
@@ -163,6 +224,35 @@ def generate_decision_tree(D, L):
 
 
     # Computa os valores possíveis de A
+    # attrIndex = D[0].index(getattr(D[0], A))
+    # if continuousIndexes != None and (attrIndex in continuousIndexes):  # Se for contínuo
+    #     D2 = sorted(D, key=lambda x: x[attrIndex])  # Ordena pelo atributo
+    #     values = []
+    #     # Adiciona a média de dois valores seguidos com classes diferentes como ponto de corte
+    #     for i in range(len(D2) - 1):
+    #         currentClass = D2[i][-1]
+    #         nextClass = D2[i + 1][-1]
+    #         if currentClass != nextClass:
+    #             values.append((float(D2[i][attrIndex]) + float(D2[i + 1][attrIndex])) / 2)
+    #
+    #     for value in values:
+    #
+    #         subset = [row for row in D if float(row[attrIndex]) <= value]
+    #         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
+    #         if not len(subset):
+    #             N.label = most_frequent_class(D)
+    #             return N
+    #         # Senão, associa N a uma subárvore gerada por recursão com o subconjunto como entrada
+    #         N.add_child(generate_decision_tree(subset, L, continuousIndexes), value)
+    #     # Para o último valor, também compara se é maior
+    #     subset = [row for row in D if float(row[attrIndex]) >= values[-1]]
+    #     if not len(subset):
+    #         N.label = most_frequent_class(D)
+    #         return N
+    #     N.add_child(generate_decision_tree(subset, L, continuousIndexes), value)
+    #
+    # else: # Senão é discreto
+
     values = { getattr(row, A) for row in D }
 
     # Para cada valor em A
@@ -175,7 +265,7 @@ def generate_decision_tree(D, L):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset, L), value)
+        N.add_child(generate_decision_tree(subset, L, continuousIndexes), value)
 
     # Retorna N
     return N
