@@ -93,7 +93,7 @@ def getCutPoint(D, attr, numericIndexes, values):
 
 # TODO: Verificar se que vai haver algum caso que não se passa nenhuma lista de atributos???
 
-def info(D, attr=None, numericIndexes = None, cutpoint=None):
+def info(D, attr=None, numericIndexes=None, cutpoint=None):
     """
     Calcula a entropia de D_v.
     Menor = melhor.

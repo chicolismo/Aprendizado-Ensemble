@@ -48,6 +48,8 @@ if __name__ == '__main__':
     print(result)
 
     testAndTraining.bootstrap(rows)
+    print(testAndTraining.mRandomFeatures(fieldnames[:-1], 2))
+    testAndTraining.stratifiedKFold(rows, 3)
 
 
 
