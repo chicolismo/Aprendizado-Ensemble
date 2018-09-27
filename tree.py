@@ -21,7 +21,7 @@ class Node:
         self.numeric = numeric
 
     def predict(self, instance):
-        print(self.label)
+        print("\n" + self.label)
         if self.terminal:
             return self.label
         current = instance.index(getattr(instance, self.label))
@@ -34,6 +34,13 @@ class Node:
                 if child.parentValue == instance[current]:
                     print(child.parentValue)
                     return child.predict(instance)
+
+    def printTree(self, depth=0):
+        if(self != None):
+            print("\t"*depth+"|"+"-"*3 + self.label)
+        for child_node in self.children:
+            child_node.printTree(depth+1)
+
 
 def all_same_class(D):
     length = len(D)
@@ -218,7 +225,7 @@ def generate_decision_tree(D, L, numericIndexes=None):
     # A = min(entropies, key=entropies.get)
     A = max(gains, key=gains.get)
 
-    print("Entropia:" + str(entropies))
+    print("\nEntropia:" + str(entropies))
     print("Ganhos:" + str(gains))
 
     # Associe A ao nó N
@@ -263,7 +270,3 @@ def generate_decision_tree(D, L, numericIndexes=None):
 
     # Retorna N
     return N
-
-
-
-

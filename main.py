@@ -1,3 +1,4 @@
+# encoding: utf-8
 from collections import namedtuple
 import sys
 import csv
@@ -19,7 +20,6 @@ def read_data(filename):
         for row in reader:
             data.append(Data(*row));
     return (fieldnames, data)
-
 
 if __name__ == '__main__':
 
@@ -43,13 +43,12 @@ if __name__ == '__main__':
     attr = fieldnames[:-1]
     Data = namedtuple('Data', fieldnames[:-1])
     # result = tree.predict(Data(tempo='Nublado', temperatura='Alta', umidade='Alta', ventoso='FALSO'))
-    result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='FALSO'))
-    print("Novo valor:")
-    print(result)
+    result = tree.predict(Data(tempo='Ensolarado', temperatura='Alta', umidade='Normal', ventoso='Falso'))
+    print("\nNovo valor:")
+    print(result + "\n")
+
+    tree.printTree()
 
     testAndTraining.bootstrap(rows)
-    print(testAndTraining.mRandomFeatures(fieldnames[:-1], 2))
+    print("\n" + str(testAndTraining.mRandomFeatures(fieldnames[:-1], 2)) + "\n")
     testAndTraining.stratifiedKFold(rows, 3)
-
-
-
