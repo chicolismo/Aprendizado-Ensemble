@@ -2,9 +2,8 @@
 
 from collections import defaultdict
 import math
-import numbers
-from operator import itemgetter
-from copy import deepcopy
+import random
+
 
 class Node:
     def __init__(self, label=None):
@@ -99,10 +98,13 @@ def getCutPoint(D, attr, numericIndexes, values):
     return min(entropy, key=entropy.get)
 
 
+def mRandomFeatures(L, m):
+    """
+    Seleciona m dos L atributos
+    """
+    features = random.sample(L, m)
+    return features
 
-
-
-# TODO: Verificar se que vai haver algum caso que não se passa nenhuma lista de atributos???
 
 def info(D, attr=None, numericIndexes=None, cutpoint=None):
     """
@@ -183,12 +185,13 @@ def info(D, attr=None, numericIndexes=None, cutpoint=None):
     return entropy
 
 
-def generate_decision_tree(D, L, numericIndexes=None):
+def generate_decision_tree(D, L, numericIndexes=None, m=-1):
     """
     Entrada:
         D: Conjunto de dados de treinamento.
         L: Lista de d atributos (rótulos) preditivos em D.
         numericIndexes: Lista de índices das features de valor contínuo
+        m = número de atributos a serem selecionados
     Retorna: Árvore de decisão
     """
 
@@ -209,13 +212,20 @@ def generate_decision_tree(D, L, numericIndexes=None):
 
     # Senão
 
+    # Se foi decidido selecionar um subconjunto de m atributos
+    if m != -1:
+        subL = mRandomFeatures(L,m)
+        print(subL)
+    else:
+        subL = L
+
     # Calcula a entropia para cada atributo restante em L.
     # O de menor entropia é escolhido.
     originalEntropy = info(D)
 
     entropies = {}
     gains = {}
-    for attr in L:
+    for attr in subL:
         if isNumeric(D, attr, numericIndexes):
             values = divideNumericalAttr(D, attr)
             cutpoint = getCutPoint(D, attr, numericIndexes, values)
@@ -241,13 +251,20 @@ def generate_decision_tree(D, L, numericIndexes=None):
 
     if isNumeric(D, A, numericIndexes):
         attrIndex = D[0].index(getattr(D[0], A))
+        values = divideNumericalAttr(D, A)
+        cutpoint = getCutPoint(D, A, numericIndexes, values)
+        print("Cutpoint " + str(cutpoint))
         subset = [row for row in D if float(row[attrIndex]) <= cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
         if not len(subset):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset, L, numericIndexes), "<=" + str(cutpoint), True)
+        if m != -1:
+            N.add_child(generate_decision_tree(subset, L, numericIndexes,
+                                               math.floor(math.sqrt(len(L)))), "<=" + str(cutpoint), True)
+        else:
+            N.add_child(generate_decision_tree(subset, L, numericIndexes), "<=" + str(cutpoint), True)
 
         subset = [row for row in D if float(row[attrIndex]) > cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
@@ -255,8 +272,11 @@ def generate_decision_tree(D, L, numericIndexes=None):
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-        N.add_child(generate_decision_tree(subset, L, numericIndexes), ">" + str(cutpoint), True)
-
+        if m != -1:
+            N.add_child(generate_decision_tree(subset, L, numericIndexes,
+                                               math.floor(math.sqrt(len(L)))), ">" + str(cutpoint), True)
+        else:
+            N.add_child(generate_decision_tree(subset, L, numericIndexes), ">" + str(cutpoint), True)
     else:
         values = { getattr(row, A) for row in D }
 
@@ -270,8 +290,11 @@ def generate_decision_tree(D, L, numericIndexes=None):
                 N.label = most_frequent_class(D)
                 return N
             # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
-            N.add_child(generate_decision_tree(subset, L, numericIndexes), value, False)
-
+            if m != -1:
+                N.add_child(generate_decision_tree(subset, L, numericIndexes,
+                                                   math.floor(math.sqrt(len(L)))), value, False)
+            else:
+                N.add_child(generate_decision_tree(subset, L, numericIndexes), value, False)
     # Retorna N
     return N
 

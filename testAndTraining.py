@@ -21,14 +21,6 @@ def bootstrap(D, r=100):
         bootstrapSets.append(Bootstrap(training=trainingSet, test=testSet))
     return bootstrapSets
 
-# TODO: checar se pode ser feito com essa função
-def mRandomFeatures(L, m):
-    """
-    Seleciona m dos L atributos
-    """
-    features = random.sample(L, m)
-    return features
-
 def stratifiedKFold(D, k=10):
     '''
     Separa o conjunto de dados em k partições que mantém a proporção de instâncias por classe em cada fold

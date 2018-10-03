@@ -1,7 +1,7 @@
 from collections import namedtuple
 import sys
 import csv
-import tree
+import tree as tr
 import testAndTraining
 
 def read_data(filename):
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         numericIndexes = None
 
     #Monta uma árvore de decisão
-    tree = tree.generate_decision_tree(rows, fieldnames[:-1], numericIndexes)
+    tree = tr.generate_decision_tree(rows, fieldnames[:-1], numericIndexes)
     attr = fieldnames[:-1]
     Data = namedtuple('Data', fieldnames[:-1])
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     #Bootstrap: printa os r (default 100) conjuntos de teste e treino gerados
     print(testAndTraining.bootstrap(rows, 5))
     #Escolha de m features: printa uma escolha aleatória de duas features dentre as existentes
-    print(testAndTraining.mRandomFeatures(fieldnames[:-1], 2))
+    print(tr.mRandomFeatures(fieldnames[:-1], 2))
     #Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
     print(testAndTraining.stratifiedKFold(rows, 3))
 
