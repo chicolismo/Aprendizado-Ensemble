@@ -3,6 +3,7 @@
 from collections import defaultdict
 import math
 import random
+import testAndTraining as tat
 
 
 class Node:
@@ -297,6 +298,19 @@ def generate_decision_tree(D, L, numericIndexes=None, m=-1):
                 N.add_child(generate_decision_tree(subset, L, numericIndexes), value, False)
     # Retorna N
     return N
+
+def randomForest(D, L, numericIndexes=None):
+    bootstrapSets = tat.bootstrap(D)
+    trees = []
+    for b in bootstrapSets:
+        trees.append(generate_decision_tree(b.training, L, numericIndexes, math.floor(math.sqrt(len(L)))))
+    return trees
+
+def majorityVoting(trees, X):
+    predicions = []
+    for tr in trees:
+        predicions.append(tr.predict(X))
+    return most_frequent_class(predicions)
 
 
 

@@ -59,5 +59,8 @@ if __name__ == '__main__':
     #Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
     print(testAndTraining.stratifiedKFold(rows, 3))
 
+    # tr.randomForest(rows, fieldnames[:-1], numericIndexes)
+    # testAndTraining.crossValidation(rows, 4)
+
 
 

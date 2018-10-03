@@ -1,6 +1,7 @@
 import random
 from collections import namedtuple
 from collections import defaultdict
+import tree as tr
 
 # TODO: é preciso verificar se os cojnutos são diferentes?
 def bootstrap(D, r=100):
@@ -28,7 +29,7 @@ def stratifiedKFold(D, k=10):
     instancesPerClass = defaultdict(list)
     for instance in D:
         instancesPerClass[instance[-1]].append(instance)
-        amountPerClass = defaultdict(list)
+    amountPerClass = defaultdict(list)
     for c in instancesPerClass:
         # Guarda o número (inteiro) de instâncias por fold e o resto da divisão por k
         amountPerClass[c] = [len(instancesPerClass[c])//k,len(instancesPerClass[c])%k]
@@ -46,5 +47,10 @@ def stratifiedKFold(D, k=10):
     return folds
 
 
-
-
+def crossValidation(D, L, numericIndexes=None, k=10):
+    folds = stratifiedKFold(D,k)
+    print(len(folds))
+    for fold in folds:
+        training = {attr for attr in folds if attr != fold}
+        trees = tr.randomForest(training, L, numericIndexes)
+        print(tr.majorityVoting(trees,fold))
