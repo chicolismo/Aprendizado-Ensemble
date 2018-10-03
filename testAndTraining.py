@@ -30,6 +30,9 @@ def mRandomFeatures(L, m):
     return features
 
 def stratifiedKFold(D, k=10):
+    '''
+    Separa o conjunto de dados em k partições que mantém a proporção de instâncias por classe em cada fold
+    '''
     instancesPerClass = defaultdict(list)
     for instance in D:
         instancesPerClass[instance[-1]].append(instance)

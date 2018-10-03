@@ -39,17 +39,25 @@ if __name__ == '__main__':
     else:
         numericIndexes = None
 
+    #Monta uma árvore de decisão
     tree = tree.generate_decision_tree(rows, fieldnames[:-1], numericIndexes)
     attr = fieldnames[:-1]
     Data = namedtuple('Data', fieldnames[:-1])
+
+    #Faz a predição de um novo valor
     # result = tree.predict(Data(tempo='Nublado', temperatura='Alta', umidade='Alta', ventoso='FALSO'))
     result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='FALSO'))
     print("Novo valor:")
     print(result)
 
-    testAndTraining.bootstrap(rows)
+    #Demosntrações de funcionamento:
+
+    #Bootstrap: printa os r (default 100) conjuntos de teste e treino gerados
+    print(testAndTraining.bootstrap(rows, 5))
+    #Escolha de m features: printa uma escolha aleatória de duas features dentre as existentes
     print(testAndTraining.mRandomFeatures(fieldnames[:-1], 2))
-    testAndTraining.stratifiedKFold(rows, 3)
+    #Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
+    print(testAndTraining.stratifiedKFold(rows, 3))
 
 
 

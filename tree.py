@@ -61,6 +61,9 @@ def most_frequent_class(D):
     return max(counter, key=counter.get)
 
 def isNumeric(D, attr, numericIndexes):
+    '''
+    Confere se o atributo está na lista (passada por parâmetro ao programa) de atributos de valor numérico
+    '''
     attrIndex = D[0].index(getattr(D[0], attr))
     if numericIndexes != None and (attrIndex in numericIndexes):  # Se for contínuo
         return True
@@ -68,6 +71,10 @@ def isNumeric(D, attr, numericIndexes):
         return False
 
 def divideNumericalAttr(D, attr):
+    '''
+    Lista os possíveis pontos de corte (média de duas instâncias seguidas, em ordem, com classes diferentes)
+    Retorna: lista de candidatos a ponto de corte
+    '''
     attrIndex = D[0].index(getattr(D[0], attr))
     D2 = sorted(D, key=lambda x: x[attrIndex])  # Ordena pelo atributo
     values = []
@@ -82,6 +89,10 @@ def divideNumericalAttr(D, attr):
 
 
 def getCutPoint(D, attr, numericIndexes, values):
+    '''
+    Escolhe o ponto de corte que resulta na menor entropia
+    Retorna: valor numérico que melhor divide o atributo
+    '''
     entropy = {}
     for value in values:
         entropy[value] = info(D, attr, numericIndexes, value)
