@@ -17,7 +17,7 @@ def bootstrap(D, r=100):
         for j in range(n):
            index = random.randint(0, n-1)
            trainingSet.append(D[index])
-        testSet = {inst for inst in D if inst not in trainingSet}
+        testSet = tuple(inst for inst in D if inst not in trainingSet)
         Bootstrap = namedtuple('Bootstrap', ['training', 'test'])
         bootstrapSets.append(Bootstrap(training=trainingSet, test=testSet))
     return bootstrapSets
@@ -51,6 +51,6 @@ def crossValidation(D, L, numericIndexes=None, k=10):
     folds = stratifiedKFold(D,k)
     print(len(folds))
     for fold in folds:
-        training = {attr for attr in folds if attr != fold}
+        training = tuple(f for f in folds if f != fold)
         trees = tr.randomForest(training, L, numericIndexes)
         print(tr.majorityVoting(trees,fold))

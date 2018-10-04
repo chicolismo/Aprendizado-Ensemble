@@ -60,7 +60,7 @@ if __name__ == '__main__':
     print(testAndTraining.stratifiedKFold(rows, 3))
 
     # tr.randomForest(rows, fieldnames[:-1], numericIndexes)
-    # testAndTraining.crossValidation(rows, 4)
+    # testAndTraining.crossValidation(rows, fieldnames[:-1], numericIndexes, 4)
 
 
 
