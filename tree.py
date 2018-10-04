@@ -3,7 +3,11 @@
 from collections import defaultdict
 import math
 import random
-import testAndTraining as tat
+import test_and_training as tat
+
+
+class BadPredictionException(Exception):
+    pass
 
 
 class Node:
@@ -12,12 +16,12 @@ class Node:
         self.terminal = True
         self.numeric = None
         self.children = []
-        self.parentValue = None
+        self.parent_value = None
 
-    def add_child(self, node, parentValue, numeric):
+    def add_child(self, node, parent_value, numeric):
         self.terminal = False
         self.children.append(node)
-        node.parentValue = parentValue
+        node.parent_value = parent_value
         self.numeric = numeric
 
     # Recebe um Data(tempo='Chuvoso' ... )
@@ -28,32 +32,34 @@ class Node:
             return self.label
 
         for child in self.children:
-            if self.numeric == True:
-                if eval(str(getattr(instance, self.label)) + child.parentValue):
-                    print(child.parentValue)
+            if self.numeric:
+                # NOTE: Se for numérico mas falhar o if debaixo???
+                if eval(str(getattr(instance, self.label)) + child.parent_value):
+                    print(child.parent_value)
                     return child.predict(instance)
             else:
-                if child.parentValue == getattr(instance, self.label):
-                    print(child.parentValue)
+                if child.parent_value == getattr(instance, self.label):
+                    print(child.parent_value)
                     return child.predict(instance)
-        print("Vai dar merda")
+
+        raise BadPredictionException('Não é possível fazer a predição da instância fornecida')
 
 
 
 def all_same_class(D):
     length = len(D)
+
     if length == 1:
         return True
-    elif length > 1:
+
+    if length > 1:
         first = D[0]
-        for i, element in enumerate(D[1:]):
-            # print(f"Classe do primeiro: {first[-1]}, Classe do elemento {i + 1}: {element[-1]}")
+        for element in D[1:]:
             if element[-1] != first[-1]:
                 return False
         return True
-    else:
-        raise Exception('"D" não pode ser uma lista vazia.')
-        # return False
+
+    raise Exception('"D" não pode ser uma lista vazia.')
 
 
 def most_frequent_class(D):
@@ -65,46 +71,47 @@ def most_frequent_class(D):
         counter[element[-1]] += 1
     return max(counter, key=counter.get)
 
-def isNumeric(D, attr, numericIndexes):
-    '''
-    Confere se o atributo está na lista (passada por parâmetro ao programa) de atributos de valor numérico
-    '''
-    attrIndex = D[0].index(getattr(D[0], attr))
-    if numericIndexes != None and (attrIndex in numericIndexes):  # Se for contínuo
-        return True
-    else:
-        return False
 
-def divideNumericalAttr(D, attr):
+def is_numeric(data, attr, numeric_indexes):
     '''
-    Lista os possíveis pontos de corte (média de duas instâncias seguidas, em ordem, com classes diferentes)
+    Confere se o atributo está na lista (passada por parâmetro ao programa) de
+    atributos de valor numérico
+    '''
+    attr_index = data[0].index(getattr(data[0], attr))
+    return (numeric_indexes is not None) and (attr_index in numeric_indexes)  # Se for contínuo
+
+
+def divide_numerical_attr(data, attr):
+    '''
+    Lista os possíveis pontos de corte (média de duas instâncias seguidas, em
+    ordem, com classes diferentes)
+
     Retorna: lista de candidatos a ponto de corte
     '''
-    attrIndex = D[0].index(getattr(D[0], attr))
-    D2 = sorted(D, key=lambda x: x[attrIndex])  # Ordena pelo atributo
+    sorted_data = list(sorted(data, key=lambda x: getattr(x, attr)))  # Ordena pelo atributo
     values = []
     # Adiciona a média de dois valores seguidos com classes diferentes como possíveis ponto de corte
-    for i in range(len(D2) - 1):
-        currentClass = D2[i][-1]
-        nextClass = D2[i + 1][-1]
-        if currentClass != nextClass:
-            values.append((float(D2[i][attrIndex]) + float(D2[i + 1][attrIndex])) / 2)
-
+    for i in range(len(sorted_data) - 1):
+        current_class = sorted_data[i][-1]
+        next_class = sorted_data[i + 1][-1]
+        if current_class != next_class:
+            values.append((float(getattr(sorted_data[i], attr)) +
+                           float(getattr(sorted_data[i + 1], attr))) / 2)
     return values
 
 
-def getCutPoint(D, attr, numericIndexes, values):
+def get_cut_point(D, attr, numeric_indices, values):
     '''
     Escolhe o ponto de corte que resulta na menor entropia
     Retorna: valor numérico que melhor divide o atributo
     '''
     entropy = {}
     for value in values:
-        entropy[value] = info(D, attr, numericIndexes, value)
+        entropy[value] = info(D, attr, numeric_indices, value)
     return min(entropy, key=entropy.get)
 
 
-def mRandomFeatures(L, m):
+def m_random_features(L, m):
     """
     Seleciona m dos L atributos
     """
@@ -112,7 +119,7 @@ def mRandomFeatures(L, m):
     return features
 
 
-def info(D, attr=None, numericIndexes=None, cutpoint=None):
+def info(D, attr=None, numeric_indices=None, cutpoint=None):
     """
     Calcula a entropia de D_v.
     Menor = melhor.
@@ -123,7 +130,7 @@ def info(D, attr=None, numericIndexes=None, cutpoint=None):
     if attr is not None:
         # Cria um conjunto com todos os valores possíveis para o attributo
         # escolhido
-        if isNumeric(D, attr, numericIndexes) and cutpoint != None:
+        if is_numeric(D, attr, numeric_indices) and cutpoint != None:
 
             # Valores menores ou iguais ao ponto de corte
             value_occurrences = 0
@@ -191,13 +198,14 @@ def info(D, attr=None, numericIndexes=None, cutpoint=None):
     return entropy
 
 
-def generate_decision_tree(D, L, numericIndexes=None, m=-1):
+def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     """
     Entrada:
         D: Conjunto de dados de treinamento.
         L: Lista de d atributos (rótulos) preditivos em D.
-        numericIndexes: Lista de índices das features de valor contínuo
+        numeric_indices: Lista de índices das features de valor contínuo
         m = número de atributos a serem selecionados
+
     Retorna: Árvore de decisão
     """
 
@@ -220,33 +228,33 @@ def generate_decision_tree(D, L, numericIndexes=None, m=-1):
 
     # Se foi decidido selecionar um subconjunto de m atributos
     if m != -1:
-        subL = mRandomFeatures(L,m)
-        print(subL)
+        sub_attributes = m_random_features(L, m)
+        print(sub_attributes)
     else:
-        subL = L
+        sub_attributes = L
 
     # Calcula a entropia para cada atributo restante em L.
     # O de menor entropia é escolhido.
-    originalEntropy = info(D)
+    original_entropy = info(D)
 
     entropies = {}
     gains = {}
-    for attr in subL:
-        if isNumeric(D, attr, numericIndexes):
-            values = divideNumericalAttr(D, attr)
-            cutpoint = getCutPoint(D, attr, numericIndexes, values)
-            entropies[attr] = info(D, attr, numericIndexes, cutpoint)
-            gains[attr] = originalEntropy - entropies[attr]
+    for attr in sub_attributes:
+        if is_numeric(D, attr, numeric_indices):
+            values = divide_numerical_attr(D, attr)
+            cutpoint = get_cut_point(D, attr, numeric_indices, values)
+            entropies[attr] = info(D, attr, numeric_indices, cutpoint)
+            gains[attr] = original_entropy - entropies[attr]
         else:
-            entropies[attr] = info(D, attr, numericIndexes)
-            gains[attr] = originalEntropy - entropies[attr]
+            entropies[attr] = info(D, attr, numeric_indices)
+            gains[attr] = original_entropy - entropies[attr]
 
     # A = Atributo preditivo em L que apresenta "melhor" critério de divisão.
     # A = min(entropies, key=entropies.get)
     A = max(gains, key=gains.get)
 
-    print("Entropia:" + str(entropies))
-    print("Ganhos:" + str(gains))
+    print("Entropia: ", entropies)
+    print("Ganhos: ", gains)
 
     # Associe A ao nó N
     N.label = A
@@ -255,22 +263,22 @@ def generate_decision_tree(D, L, numericIndexes=None, m=-1):
     # L = L - A
     L = tuple(attr for attr in L if attr != A)
 
-    if isNumeric(D, A, numericIndexes):
+    if is_numeric(D, A, numeric_indices):
         attrIndex = D[0].index(getattr(D[0], A))
-        values = divideNumericalAttr(D, A)
-        cutpoint = getCutPoint(D, A, numericIndexes, values)
-        print("Cutpoint " + str(cutpoint))
+        values = divide_numerical_attr(D, A)
+        cutpoint = get_cut_point(D, A, numeric_indices, values)
+        print("Cutpoint ", cutpoint)
         subset = [row for row in D if float(row[attrIndex]) <= cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
-        if not len(subset):
+        if len(subset) is 0:
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
         if m != -1:
-            N.add_child(generate_decision_tree(subset, L, numericIndexes,
+            N.add_child(generate_decision_tree(subset, L, numeric_indices,
                                                math.floor(math.sqrt(len(L)))), "<=" + str(cutpoint), True)
         else:
-            N.add_child(generate_decision_tree(subset, L, numericIndexes), "<=" + str(cutpoint), True)
+            N.add_child(generate_decision_tree(subset, L, numeric_indices), "<=" + str(cutpoint), True)
 
         subset = [row for row in D if float(row[attrIndex]) > cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
@@ -279,10 +287,10 @@ def generate_decision_tree(D, L, numericIndexes=None, m=-1):
             return N
         # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
         if m != -1:
-            N.add_child(generate_decision_tree(subset, L, numericIndexes,
+            N.add_child(generate_decision_tree(subset, L, numeric_indices,
                                                math.floor(math.sqrt(len(L)))), ">" + str(cutpoint), True)
         else:
-            N.add_child(generate_decision_tree(subset, L, numericIndexes), ">" + str(cutpoint), True)
+            N.add_child(generate_decision_tree(subset, L, numeric_indices), ">" + str(cutpoint), True)
     else:
         values = { getattr(row, A) for row in D }
 
@@ -297,27 +305,34 @@ def generate_decision_tree(D, L, numericIndexes=None, m=-1):
                 return N
             # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
             if m != -1:
-                N.add_child(generate_decision_tree(subset, L, numericIndexes,
+                N.add_child(generate_decision_tree(subset, L, numeric_indices,
                                                    math.floor(math.sqrt(len(L)))), value, False)
             else:
-                N.add_child(generate_decision_tree(subset, L, numericIndexes), value, False)
+                N.add_child(generate_decision_tree(subset, L, numeric_indices), value, False)
     # Retorna N
     return N
 
-def randomForest(D, L, numericIndexes=None):
-    bootstrapSets = tat.bootstrap(D)
+
+def randomForest(data, attributes, numeric_indices=None):
+    bootstrap_sets = tat.bootstrap(data)
     trees = []
-    for b in bootstrapSets:
-        trees.append(generate_decision_tree(b.training, L, numericIndexes, math.floor(math.sqrt(len(L)))))
+    for bootstrap in bootstrap_sets:
+        trees.append(
+            generate_decision_tree(bootstrap.training,
+                                   attributes,
+                                   numeric_indices,
+                                   math.floor(math.sqrt(len(attributes)))))
     return trees
 
-def majorityVoting(trees, X):
+
+def majority_voting(trees, element):
     predictions = []
-    for tr in trees:
-        predictions.append(tr.predict(X))
-    # print(predictions)
+
+    for tree in trees:
+        try:
+            prediction = tree.predict(element)
+            predictions.append(prediction)
+        except BadPredictionException:
+            print("Predição não foi possível. Elemento foi ignorado")
+
     return most_frequent_class(predictions)
-
-
-
-

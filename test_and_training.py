@@ -61,4 +61,4 @@ def crossValidation(D, L, numericIndexes=None, k=10):
         trees = tr.randomForest(training, L, numericIndexes)
 
         for element in fold:
-            print(tr.majorityVoting(trees, element))
+            print(tr.majority_voting(trees, element))
