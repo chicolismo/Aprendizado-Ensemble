@@ -3,7 +3,7 @@ from collections import namedtuple
 from collections import defaultdict
 import tree as tr
 
-# TODO: é preciso verificar se os cojnutos são diferentes?
+# TODO: é preciso verificar se os conjutos são diferentes?
 def bootstrap(D, r=100):
     """
     Separa o conjunto D em r conjuntos de teste e treino com reposição
@@ -51,6 +51,14 @@ def crossValidation(D, L, numericIndexes=None, k=10):
     folds = stratifiedKFold(D,k)
     print(len(folds))
     for fold in folds:
-        training = tuple(f for f in folds if f != fold)
+        training = []
+        for f in folds:
+            if f != fold:
+                for item in f:
+                    training.append(item)
+
+        print('Training', training)
         trees = tr.randomForest(training, L, numericIndexes)
-        print(tr.majorityVoting(trees,fold))
+
+        for element in fold:
+            print(tr.majorityVoting(trees, element))

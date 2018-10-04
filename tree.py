@@ -20,20 +20,25 @@ class Node:
         node.parentValue = parentValue
         self.numeric = numeric
 
+    # Recebe um Data(tempo='Chuvoso' ... )
     def predict(self, instance):
         print(self.label)
+
         if self.terminal:
             return self.label
-        current = instance.index(getattr(instance, self.label))
+
         for child in self.children:
             if self.numeric == True:
-                if eval(str(instance[current]) + child.parentValue):
+                if eval(str(getattr(instance, self.label)) + child.parentValue):
                     print(child.parentValue)
                     return child.predict(instance)
             else:
-                if child.parentValue == instance[current]:
+                if child.parentValue == getattr(instance, self.label):
                     print(child.parentValue)
                     return child.predict(instance)
+        print("Vai dar merda")
+
+
 
 def all_same_class(D):
     length = len(D)
@@ -307,10 +312,11 @@ def randomForest(D, L, numericIndexes=None):
     return trees
 
 def majorityVoting(trees, X):
-    predicions = []
+    predictions = []
     for tr in trees:
-        predicions.append(tr.predict(X))
-    return most_frequent_class(predicions)
+        predictions.append(tr.predict(X))
+    # print(predictions)
+    return most_frequent_class(predictions)
 
 
 

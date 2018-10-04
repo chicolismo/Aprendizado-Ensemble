@@ -29,8 +29,8 @@ if __name__ == '__main__':
         raise Exception('Forneça o nome do arquivo CSV.\nExemplo: python3 main.py data.csv')
 
     fieldnames, rows = read_data(filename)
-    for row in rows:
-        print(row)
+    # for row in rows:
+        # print(row)
 
     if len(sys.argv) > 2: # Array com indices das features contínuas passado como parâmetro
         numericIndexes = []
@@ -40,13 +40,14 @@ if __name__ == '__main__':
         numericIndexes = None
 
     #Monta uma árvore de decisão
-    tree = tr.generate_decision_tree(rows, fieldnames[:-1], numericIndexes)
+    print(rows)
     attr = fieldnames[:-1]
-    Data = namedtuple('Data', fieldnames[:-1])
+    tree = tr.generate_decision_tree(rows, attr, numericIndexes)
+    Data = namedtuple('Data', attr)
 
     #Faz a predição de um novo valor
-    # result = tree.predict(Data(tempo='Nublado', temperatura='Alta', umidade='Alta', ventoso='FALSO'))
-    result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='FALSO'))
+    result = tree.predict(Data(tempo='Nublado', temperatura='Amena', umidade='Alta', ventoso='Falso'))
+    # result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='FALSO'))
     print("Novo valor:")
     print(result)
 
@@ -55,12 +56,16 @@ if __name__ == '__main__':
     #Bootstrap: printa os r (default 100) conjuntos de teste e treino gerados
     print(testAndTraining.bootstrap(rows, 5))
     #Escolha de m features: printa uma escolha aleatória de duas features dentre as existentes
-    print(tr.mRandomFeatures(fieldnames[:-1], 2))
+    print(tr.mRandomFeatures(attr, 2))
     #Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
     print(testAndTraining.stratifiedKFold(rows, 3))
 
     # tr.randomForest(rows, fieldnames[:-1], numericIndexes)
-    # testAndTraining.crossValidation(rows, fieldnames[:-1], numericIndexes, 4)
+
+    test_rows = []
+    for row in rows:
+        test_rows.append(Data(*row[0:-1]))
+    testAndTraining.crossValidation(test_rows, attr, numericIndexes, 4)
 
 
 
