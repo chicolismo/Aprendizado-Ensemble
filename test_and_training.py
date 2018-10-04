@@ -3,36 +3,36 @@ from collections import namedtuple
 from collections import defaultdict
 import tree as tr
 
+Bootstrap = namedtuple('Bootstrap', ['training', 'test'])
+
 # TODO: é preciso verificar se os conjutos são diferentes?
-def bootstrap(D, r=100):
+def bootstrap(data, r=100):
     """
     Separa o conjunto D em r conjuntos de teste e treino com reposição
     """
-    n = len(D)
-    bootstrapSets = []
+    bootstrap_sets = []
     # Cria r bootstraps
-    for i in range(r):
-        trainingSet = []
+    for _ in range(r):
+        training_set = []
         # Seleciona n instâncias aleatórias (com repetição) para o conjunto de treino
-        for j in range(n):
-           index = random.randint(0, n-1)
-           trainingSet.append(D[index])
-        testSet = tuple(inst for inst in D if inst not in trainingSet)
-        Bootstrap = namedtuple('Bootstrap', ['training', 'test'])
-        bootstrapSets.append(Bootstrap(training=trainingSet, test=testSet))
-    return bootstrapSets
+        for _ in range(len(data)):
+            training_set.append(random.choice(data))
+        test_set = [inst for inst in data if inst not in training_set]
+        bootstrap_sets.append(Bootstrap(training=training_set, test=test_set))
+    return bootstrap_sets
 
-def stratifiedKFold(D, k=10):
+
+def stratifiedKFold(data, k=10):
     '''
     Separa o conjunto de dados em k partições que mantém a proporção de instâncias por classe em cada fold
     '''
     instancesPerClass = defaultdict(list)
-    for instance in D:
+    for instance in data:
         instancesPerClass[instance[-1]].append(instance)
     amountPerClass = defaultdict(list)
     for c in instancesPerClass:
         # Guarda o número (inteiro) de instâncias por fold e o resto da divisão por k
-        amountPerClass[c] = [len(instancesPerClass[c])//k,len(instancesPerClass[c])%k]
+        amountPerClass[c] = [len(instancesPerClass[c])//k, len(instancesPerClass[c])%k]
     folds = [[] for l in range(k)]
     for f in range(k):
         for c in instancesPerClass:
@@ -58,7 +58,7 @@ def crossValidation(D, L, numeric_indices=None, k=10):
                     training_data.append(item)
 
         print('Training', training_data)
-        trees = tr.randomForest(training_data, L, numeric_indices)
+        trees = tr.random_forest(training_data, L, numeric_indices)
 
         for element in current_fold:
             print(tr.majority_voting(trees, element))

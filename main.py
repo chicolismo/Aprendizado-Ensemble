@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
     print(test_and_training.stratifiedKFold(rows, 3))
 
-    # tr.randomForest(rows, fieldnames[:-1], numeric_indices)
+    # tr.random_forest(rows, fieldnames[:-1], numeric_indices)
 
     test_rows = []
     for row in rows:

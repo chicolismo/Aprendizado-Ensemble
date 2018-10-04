@@ -220,7 +220,7 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
 
     # Se L é vazia então retorne N como um nó folha rotulado
     # com a classe y_i mais frequente em D.
-    if L == None or len(L) == 0:
+    if L == None or len(L) is 0:
         N.label = most_frequent_class(D)
         return N
 
@@ -264,11 +264,11 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     L = tuple(attr for attr in L if attr != A)
 
     if is_numeric(D, A, numeric_indices):
-        attrIndex = D[0].index(getattr(D[0], A))
         values = divide_numerical_attr(D, A)
         cutpoint = get_cut_point(D, A, numeric_indices, values)
-        print("Cutpoint ", cutpoint)
-        subset = [row for row in D if float(row[attrIndex]) <= cutpoint]
+        print("Cutpoint: ", cutpoint)
+        subset = [row for row in D if float(getattr(row, A)) <= cutpoint]
+
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
         if len(subset) is 0:
             N.label = most_frequent_class(D)
@@ -280,9 +280,9 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
         else:
             N.add_child(generate_decision_tree(subset, L, numeric_indices), "<=" + str(cutpoint), True)
 
-        subset = [row for row in D if float(row[attrIndex]) > cutpoint]
+        subset = [row for row in D if float(getattr(row, A)) > cutpoint]
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna
-        if not len(subset):
+        if len(subset) is 0:
             N.label = most_frequent_class(D)
             return N
         # Senão, associa N a uma subárvore gerada por recursão com o subconjunto como entrada
@@ -315,7 +315,7 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     return N
 
 
-def randomForest(data, attributes, numeric_indices=None):
+def random_forest(data, attributes, numeric_indices=None):
     bootstrap_sets = tat.bootstrap(data)
     trees = []
     for bootstrap in bootstrap_sets:
