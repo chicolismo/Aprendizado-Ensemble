@@ -285,14 +285,15 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
         if not len(subset):
             N.label = most_frequent_class(D)
             return N
-        # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
+        # Senão, associa N a uma subárvore gerada por recursão com o subconjunto como entrada
         if m != -1:
-            N.add_child(generate_decision_tree(subset, L, numeric_indices,
-                                               math.floor(math.sqrt(len(L)))), ">" + str(cutpoint), True)
+            N.add_child(
+                generate_decision_tree(subset, L, numeric_indices,
+                                       math.floor(math.sqrt(len(L)))), ">" + str(cutpoint), True)
         else:
             N.add_child(generate_decision_tree(subset, L, numeric_indices), ">" + str(cutpoint), True)
     else:
-        values = { getattr(row, A) for row in D }
+        values = {getattr(row, A) for row in D}
 
         # Para cada valor em A
         for value in values:
@@ -300,10 +301,11 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
             subset = [row for row in D if value in row]
 
             # Se o subconjunto for vazio, associa a classe mais frequente e retorna
-            if not len(subset):
+            if len(subset) is 0:
                 N.label = most_frequent_class(D)
                 return N
-            # Senão, associa N a uma subárvore gerad por recursão com o subconjunto como entrada
+
+            # Senão, associa N a uma subárvore gerada por recursão com o subconjunto como entrada
             if m != -1:
                 N.add_child(generate_decision_tree(subset, L, numeric_indices,
                                                    math.floor(math.sqrt(len(L)))), value, False)

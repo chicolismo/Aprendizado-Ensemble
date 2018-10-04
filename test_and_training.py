@@ -47,18 +47,18 @@ def stratifiedKFold(D, k=10):
     return folds
 
 
-def crossValidation(D, L, numericIndexes=None, k=10):
-    folds = stratifiedKFold(D,k)
-    print(len(folds))
-    for fold in folds:
-        training = []
-        for f in folds:
-            if f != fold:
-                for item in f:
-                    training.append(item)
+def crossValidation(D, L, numeric_indices=None, k=10):
+    folds = stratifiedKFold(D, k)
+    print("Número de folds: ", len(folds))
+    for current_fold in folds:
+        training_data = []
+        for fold in folds:
+            if fold != current_fold:
+                for item in fold:
+                    training_data.append(item)
 
-        print('Training', training)
-        trees = tr.randomForest(training, L, numericIndexes)
+        print('Training', training_data)
+        trees = tr.randomForest(training_data, L, numeric_indices)
 
-        for element in fold:
+        for element in current_fold:
             print(tr.majority_voting(trees, element))
