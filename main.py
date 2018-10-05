@@ -45,29 +45,25 @@ if __name__ == '__main__':
     Data = namedtuple('Data', attributes)
 
     # Faz a predição de um novo valor
-    try:
-        # result = tree.predict(Data(tempo='Nublado', temperatura='Amena', umidade='Alta', ventoso='Falso'))
-        result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='Falso'))
-        print("Novo valor:")
-        print(result)
-    except tr.BadPredictionException:
-        print("Não foi possível predizer o elemento.")
+    # try:
+    #     # result = tree.predict(Data(tempo='Nublado', temperatura='Amena', umidade='Alta', ventoso='Falso'))
+    #     result = tree.predict(Data(tempo='Ensolarado', temperatura=20, umidade=80, ventoso='Falso'))
+    #     print("Novo valor:")
+    #     print(result)
+    # except tr.BadPredictionException:
+    #     print("Não foi possível predizer o elemento.")
 
     # Demonstrações de funcionamento:
 
-    # Bootstrap: printa os r (default 100) conjuntos de teste e treino gerados
-    print(test_and_training.bootstrap(rows, 5))
-
-    # Escolha de m features: printa uma escolha aleatória de duas features dentre as existentes
-    print(tr.m_random_features(attributes, 2))
-
-    # Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
-    print(test_and_training.stratifiedKFold(rows, 3))
+    # # Bootstrap: printa os r (default 100) conjuntos de teste e treino gerados
+    # print(test_and_training.bootstrap(rows, 5))
+    #
+    # # Escolha de m features: printa uma escolha aleatória de duas features dentre as existentes
+    # print(tr.m_random_features(attributes, 2))
+    #
+    # # Divisão em K folds estratificados: printa os k (default 10) folds estratificados gerados
+    # print(test_and_training.stratifiedKFold(rows, 3))
 
     # tr.random_forest(rows, fieldnames[:-1], numeric_indices)
 
-    test_rows = []
-    for row in rows:
-        test_rows.append(Data(*row[0:-1]))
-
-    test_and_training.crossValidation(test_rows, attributes, numeric_indices, 4)
+    test_and_training.crossValidation(rows, attributes, numeric_indices, 4)

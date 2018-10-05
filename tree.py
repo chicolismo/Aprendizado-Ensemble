@@ -26,7 +26,7 @@ class Node:
 
     # Recebe um Data(tempo='Chuvoso' ... )
     def predict(self, instance):
-        print(self.label)
+        # print(self.label)
 
         if self.terminal:
             return self.label
@@ -35,11 +35,11 @@ class Node:
             if self.numeric:
                 # NOTE: Se for numérico mas falhar o if debaixo???
                 if eval(str(getattr(instance, self.label)) + child.parent_value):
-                    print(child.parent_value)
+                    # print(child.parent_value)
                     return child.predict(instance)
             else:
                 if child.parent_value == getattr(instance, self.label):
-                    print(child.parent_value)
+                    # print(child.parent_value)
                     return child.predict(instance)
 
         raise BadPredictionException('Não é possível fazer a predição da instância fornecida')
@@ -229,7 +229,7 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     # Se foi decidido selecionar um subconjunto de m atributos
     if m != -1:
         sub_attributes = m_random_features(L, m)
-        print(sub_attributes)
+        # print(sub_attributes)
     else:
         sub_attributes = L
 
@@ -253,8 +253,8 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     # A = min(entropies, key=entropies.get)
     A = max(gains, key=gains.get)
 
-    print("Entropia: ", entropies)
-    print("Ganhos: ", gains)
+    # print("Entropia: ", entropies)
+    # print("Ganhos: ", gains)
 
     # Associe A ao nó N
     N.label = A
@@ -266,7 +266,7 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     if is_numeric(D, A, numeric_indices):
         values = divide_numerical_attr(D, A)
         cutpoint = get_cut_point(D, A, numeric_indices, values)
-        print("Cutpoint: ", cutpoint)
+        # print("Cutpoint: ", cutpoint)
         subset = [row for row in D if float(getattr(row, A)) <= cutpoint]
 
         # Se o subconjunto for vazio, associa a classe mais frequente e retorna

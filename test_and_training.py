@@ -6,7 +6,7 @@ import tree as tr
 Bootstrap = namedtuple('Bootstrap', ['training', 'test'])
 
 # TODO: é preciso verificar se os conjutos são diferentes?
-def bootstrap(data, r=100):
+def bootstrap(data, r=10):
     """
     Separa o conjunto D em r conjuntos de teste e treino com reposição
     """
@@ -48,6 +48,7 @@ def stratifiedKFold(data, k=10):
 
 
 def crossValidation(D, L, numeric_indices=None, k=10):
+    Data = namedtuple('Data', L)
     folds = stratifiedKFold(D, k)
     print("Número de folds: ", len(folds))
     for current_fold in folds:
@@ -57,8 +58,8 @@ def crossValidation(D, L, numeric_indices=None, k=10):
                 for item in fold:
                     training_data.append(item)
 
-        print('Training', training_data)
+        # print('Training', training_data)
         trees = tr.random_forest(training_data, L, numeric_indices)
 
         for element in current_fold:
-            print(tr.majority_voting(trees, element))
+            print(tr.majority_voting(trees, Data(*element[0:-1])))
