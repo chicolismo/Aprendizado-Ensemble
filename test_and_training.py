@@ -55,6 +55,10 @@ def crossValidation(D, L, numeric_indices=None, k=10, r=10):
     numOfClasses = tr.count_classes(D)
     # confusionMatrix = [[0 for x in range(numOfClasses)] for y in range(numOfClasses)]
     confusionMatrix = nested_dict(numOfClasses)
+    classes = list(set([e[-1] for e in D]))
+    for c in classes:
+        for c2 in classes:
+            confusionMatrix[c][c2] = 0
     fmeasures = []
     for current_fold in folds:
         training_data = []
