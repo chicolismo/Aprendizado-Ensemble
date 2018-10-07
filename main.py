@@ -3,6 +3,7 @@ import sys
 import csv
 import tree as tr
 import test_and_training
+import random
 
 def read_data(filename):
     """
@@ -23,6 +24,8 @@ def read_data(filename):
 
 
 if __name__ == '__main__':
+
+    random.seed(123)
 
     if len(sys.argv) > 1:
         csv_filename = sys.argv[1]
@@ -66,4 +69,4 @@ if __name__ == '__main__':
 
     # tr.random_forest(rows, fieldnames[:-1], numeric_indices)
 
-    test_and_training.crossValidation(rows, attributes, numeric_indices, 4)
+    print(test_and_training.crossValidation(rows, attributes, numeric_indices, 10, 10))

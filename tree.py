@@ -17,8 +17,11 @@ class Node:
         self.numeric = None
         self.children = []
         self.parent_value = None
+        # print(self.label)
+        # print(self.parent_value)
 
     def add_child(self, node, parent_value, numeric):
+        # print("LABEL " + str(self.label) + " " + str(self.parent_value) + " " + str(parent_value))
         self.terminal = False
         self.children.append(node)
         node.parent_value = parent_value
@@ -34,6 +37,11 @@ class Node:
         for child in self.children:
             if self.numeric:
                 # NOTE: Se for numérico mas falhar o if debaixo???
+                # print(instance)
+                # print(self.label)
+                # print(child.parent_value)
+                # print(self.terminal)
+                # print(self.parent_value)
                 if eval(str(getattr(instance, self.label)) + child.parent_value):
                     # print(child.parent_value)
                     return child.predict(instance)
@@ -61,6 +69,11 @@ def all_same_class(D):
 
     raise Exception('"D" não pode ser uma lista vazia.')
 
+def count_classes(D):
+    counter = defaultdict(int)
+    for element in D:
+        counter[element[-1]] += 1
+    return len(counter)
 
 def most_frequent_class(D):
     '''
@@ -315,8 +328,8 @@ def generate_decision_tree(D, L, numeric_indices=None, m=-1):
     return N
 
 
-def random_forest(data, attributes, numeric_indices=None):
-    bootstrap_sets = tat.bootstrap(data)
+def random_forest(data, attributes, numeric_indices=None, r=10):
+    bootstrap_sets = tat.bootstrap(data,r)
     trees = []
     for bootstrap in bootstrap_sets:
         trees.append(

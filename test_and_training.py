@@ -2,6 +2,7 @@ import random
 from collections import namedtuple
 from collections import defaultdict
 import tree as tr
+import math
 
 Bootstrap = namedtuple('Bootstrap', ['training', 'test'])
 
@@ -47,10 +48,14 @@ def stratifiedKFold(data, k=10):
     return folds
 
 
-def crossValidation(D, L, numeric_indices=None, k=10):
+def crossValidation(D, L, numeric_indices=None, k=10, r=10):
     Data = namedtuple('Data', L)
     folds = stratifiedKFold(D, k)
-    print("Número de folds: ", len(folds))
+    # print("Número de folds: ", len(folds))
+    numOfClasses = tr.count_classes(D)
+    # confusionMatrix = [[0 for x in range(numOfClasses)] for y in range(numOfClasses)]
+    confusionMatrix = nested_dict(numOfClasses)
+    fmeasures = []
     for current_fold in folds:
         training_data = []
         for fold in folds:
@@ -59,7 +64,69 @@ def crossValidation(D, L, numeric_indices=None, k=10):
                     training_data.append(item)
 
         # print('Training', training_data)
-        trees = tr.random_forest(training_data, L, numeric_indices)
+        trees = tr.random_forest(training_data, L, numeric_indices, r)
 
         for element in current_fold:
-            print(tr.majority_voting(trees, Data(*element[0:-1])))
+            decision = tr.majority_voting(trees, Data(*element[0:-1]))
+            confusionMatrix[element[-1]][decision] += 1
+            print("DECISAO: " + decision)
+        tp, fp, fn = sum_tp_fp_fn(confusionMatrix)
+        fmeasures.append(f_measure(1,tp,fp,fn))
+    aritmMean = mean(fmeasures)
+    stdDeviation = std_deviation(fmeasures)
+    return aritmMean, stdDeviation
+
+def nested_dict(n):
+    if n == 1:
+        return defaultdict(int)
+    else:
+        return defaultdict(lambda: nested_dict(n-1))
+
+def sum_tp_fp_fn(confusionMatrix, c=None):
+    '''Retorna a soma dos verdadeiros positivos, falsos positivos e falsos negativos
+    c = classe a ter a soma retornada: se None, faz a soma de todas as classes'''
+    tp = 0
+    fp = 0
+    fn = 0
+    if c != None:
+        tp = confusionMatrix[c][c]
+        for l in confusionMatrix:
+            if c != l:
+                fp += confusionMatrix[l][c]
+                fn += confusionMatrix[c][l]
+        return tp, fp, fn
+    else:
+        for l in confusionMatrix:
+            for l2 in confusionMatrix:
+                if l != l2:
+                    fp += confusionMatrix[l2][l]
+                    fn += confusionMatrix[l][l2]
+                else:
+                    tp += confusionMatrix[l][l2]
+        return tp, fp, fn
+
+def precision(truePositives, falsePositives):
+    return truePositives/(truePositives+falsePositives)
+
+def recall(truePositives, falseNegatives):
+    return truePositives/(truePositives+falseNegatives)
+
+def f_measure(beta, tp, fp, fn):
+    b2 = beta*beta
+    prec = precision(tp, fp)
+    rev = recall(tp, fn)
+    return (1 + (b2))*((prec*rev)/((b2*prec)+rev))
+
+def mean(list):
+    sum = 0
+    for e in list:
+        sum += e
+    return sum/len(list)
+
+def std_deviation(list):
+    m = mean(list)
+    sSum = 0
+    for e in list:
+        sSum += (e - m)*(e - m)
+    sSum = sSum/len(list)
+    return math.sqrt(sSum)
