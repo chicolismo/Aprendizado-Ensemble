@@ -137,3 +137,4 @@ def std_deviation(list):
         sSum += (e - m)*(e - m)
     sSum = sSum/len(list)
     return math.sqrt(sSum)
+

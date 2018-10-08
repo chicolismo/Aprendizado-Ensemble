@@ -1,0 +1,13 @@
+# Vinhos
+
+python3 main.py wine.csv alcohol malic_acid ash alcalinity_of_ash magnesium total_phenols flavanoids nonflavanoid_phenols proanthocyanins color_intensity hue od280_od315_of_diluted_wines proline
+
+
+# Câncer
+
+python3 main.py wdbc.csv f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 f20 f21 f22 f23 f24 f25 f26 f27 f28 f29 f30
+
+
+# Ionosfera
+
+python3 main.py ionosphere.csv f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 f20 f21 f22 f23 f24 f25 f26 f27 f28 f29 f30 f31 f32 f33
