@@ -239,7 +239,7 @@ def generate_decision_tree(data, attributes, numeric_fields=None, m = -1):
     else:
         sub_attributes = attributes
 
-    # original_entropy = info(data)
+    original_entropy = info(data)
 
     entropies = {}
     gains = {}
@@ -251,8 +251,8 @@ def generate_decision_tree(data, attributes, numeric_fields=None, m = -1):
         else:
             entropies[attr] = info(data, attr, False)
 
-        # gains[attr] = original_entropy - entropies[attr]
-        gains[attr] = -entropies[attr]
+        gains[attr] = original_entropy - entropies[attr]
+        # gains[attr] = -entropies[attr]
 
 
     # Atributo preditivo que representa "melhor" critério de divisão.
