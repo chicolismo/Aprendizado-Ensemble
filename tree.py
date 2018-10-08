@@ -97,12 +97,12 @@ def divide_numeric_attr(data, attr):
     Retorna: lista de candidatos a ponto de corte
     '''
     # Ordena pelo atributo
-    sorte_data = list(sorted(data, key=lambda row: getattr(row, attr)))
+    sorted_data = list(sorted(data, key=lambda row: getattr(row, attr)))
 
     values = []
     # Adiciona média de dois valores seguidos com classes diferentes como
     # possíveis pontos de corte
-    for a, b in zip(data[0:], data[1:]):
+    for a, b in zip(sorted_data[0:], sorted_data[1:]):
         if a[-1] != b[-1]:
             values.append((float(getattr(a, attr)) + float(getattr(b, attr))) / 2)
     return values
@@ -239,7 +239,7 @@ def generate_decision_tree(data, attributes, numeric_fields=None, m = -1):
     else:
         sub_attributes = attributes
 
-    original_entropy = info(data)
+    # original_entropy = info(data)
 
     entropies = {}
     gains = {}
@@ -251,8 +251,8 @@ def generate_decision_tree(data, attributes, numeric_fields=None, m = -1):
         else:
             entropies[attr] = info(data, attr, False)
 
-        gains[attr] = original_entropy - entropies[attr]
-        # gains[attr] = -entropies[attr]
+        # gains[attr] = original_entropy - entropies[attr]
+        gains[attr] = -entropies[attr]
 
 
     # Atributo preditivo que representa "melhor" critério de divisão.
