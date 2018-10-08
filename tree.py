@@ -5,6 +5,8 @@ import math
 import random
 import test_and_training
 
+RANDOM = random.Random(123)
+
 class BadPredictionException(Exception):
     '''
     Representa um erro de predição
@@ -42,6 +44,17 @@ class Node:
 
         raise BadPredictionException('Não é possível fazer a predição da instância fornecida')
 
+    def print(self, level=0):
+        sep = '    '
+        if self.parent_value:
+            print(sep * level + self.parent_value)
+            level += 1
+            print(sep * level + self.label)
+        else:
+            print(sep * level + self.label)
+
+        for child in self.children:
+            child.print(level + 1)
 
 def all_same_class(data):
     length = len(data)
@@ -110,7 +123,7 @@ def m_random_features(attributes, m):
     '''
     Seleciona m atributos
     '''
-    return random.sample(attributes, m)
+    return RANDOM.sample(attributes, m)
 
 
 def info(data, attr=None, numeric=False, cut_point=None):
@@ -244,6 +257,8 @@ def generate_decision_tree(data, attributes, numeric_fields=None, m = -1):
 
     # Atributo preditivo que representa "melhor" critério de divisão.
     predictive_attr = max(gains, key=gains.get)
+
+    print(f'Ganho do atributo {predictive_attr}: ', gains[predictive_attr])
 
     node.label = predictive_attr
 

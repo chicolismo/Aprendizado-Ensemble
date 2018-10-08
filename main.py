@@ -18,7 +18,6 @@ def read_data(filename):
         fields = tuple(map(lambda s: s.lower(), next(reader)))
         Data = namedtuple('Data', fields)
         for csv_row in reader:
-            print(len(csv_row))
             data.append(Data(*csv_row))
     return (fields, data)
 
@@ -37,11 +36,9 @@ if __name__ == '__main__':
         numeric_fields.add(name)
 
     attributes = fieldnames[:-1]
-    # print(fieldnames, rows, numeric_fields)
 
-    # TestData = namedtuple('TestData', attributes)
-    # test = TestData(*(rows[0][0:-1]))
-    # forest = tr.random_forest(rows, attributes, numeric_fields)
-    # voting = tr.majority_voting(forest, test)
+    tree = tr.generate_decision_tree(rows, attributes, numeric_fields)
+    tree.print()
+    # TestData = namedtuple('Data', attributes)
 
     # print(tat.cross_validation(rows, attributes, numeric_fields, 10, 10))
